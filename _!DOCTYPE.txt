@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Health Companion - Dashboard</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure Tailwind for Inter Font and custom colors -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0fdf4; /* Light Mint */
+        }
+        .companion-card {
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.1);
+            border: 1px solid #d1fae5;
+        }
+        .chat-bubble {
+            background-color: #ecfdf5; /* Very Light Mint */
+            border-left: 4px solid #10b981; /* Emerald Green accent */
+        }
+        .feature-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .feature-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Main Mobile Container -->
+    <div class="w-full max-w-md bg-white rounded-xl companion-card overflow-hidden">
+
+        <!-- Header -->
+        <header class="p-5 bg-emerald-600 text-white flex justify-between items-center">
+            <div id="header-title">
+                <h1 class="text-2xl font-bold flex items-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                    <span id="app-title">AI Health Companion</span>
+                </h1>
+                <p class="text-sm opacity-90 mt-1" id="app-subtitle">Dashboard</p>
+            </div>
+            <button onclick="switchView('dashboard')" id="home-button" class="p-2 bg-emerald-500 rounded-full hover:bg-emerald-700 transition duration-150 shadow-md hidden" aria-label="Go to Dashboard">
+                   <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+            </button>
+        </header>
+
+        <!-- Configuration/Language Selector & Offline Toggle -->
+        <div class="p-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center flex-wrap gap-2">
+             <label for="language-select" class="text-sm font-semibold text-gray-700">Select Language:</label>
+             <select id="language-select" class="p-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-emerald-500 focus:border-emerald-500 max-w-[40%]">
+                 <option value="en-US" data-voice="Kore">English (US)</option>
+                 <option value="hi-IN" data-voice="Charon">Hindi (भारत)</option>
+                 <option value="ta-IN" data-voice="Algieba">Tamil (இந்தியா)</option>
+                 <option value="bn-BD" data-voice="Erinome">Bengali (বাংলাদেশ)</option>
+                 <option value="mr-IN" data-voice="Gacrux">Marathi (भारत)</option>
+                 <option value="te-IN" data-voice="Fenrir">Telugu (భారతదేశం)</option>
+             </select>
+             
+             <!-- NEW: Offline Mode Toggle -->
+             <div class="flex items-center space-x-2 mt-2 w-full justify-end">
+                <span class="text-xs font-semibold text-gray-700">Offline Mode:</span>
+                <input type="checkbox" id="offline-toggle" class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded" onclick="toggleOfflineMode()">
+             </div>
+             <p id="offline-status" class="text-xs text-red-500 w-full text-right hidden">Using local cache! Limited responses available.</p>
+        </div>
+        
+        <!-- --- DASHBOARD VIEW --- -->
+        <main class="p-4 space-y-4 h-[28rem] overflow-y-auto" id="dashboard-view">
+            <div class="grid grid-cols-2 gap-4">
+                
+                <!-- Feature Card: Symptom Checker -->
+                <div onclick="switchView('chat')" class="feature-card bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-center shadow-md">
+                    <svg class="w-8 h-8 text-emerald-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.325-.325"></path></svg>
+                    <p class="font-semibold text-gray-800">Symptom Checker</p>
+                    <p class="text-xs text-gray-500">Ask about fever, cough, skin rash (with image).</p>
+                </div>
+
+                <!-- Feature Card: Test Result Analyzer -->
+                <div onclick="switchView('test_analysis')" class="feature-card bg-blue-50 border border-blue-200 p-4 rounded-xl text-center shadow-md">
+                    <svg class="w-8 h-8 text-blue-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                    <p class="font-semibold text-gray-800">Test Result Analyzer</p>
+                    <p class="text-xs text-gray-500">Simplify blood sugar, report values (with image).</p>
+                </div>
+
+                <!-- Feature Card: Find Local Clinic (NEW) -->
+                <div onclick="switchView('find_clinic')" class="feature-card bg-yellow-50 border border-yellow-200 p-4 rounded-xl text-center shadow-md">
+                    <svg class="w-8 h-8 text-yellow-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.828 0L6.343 16.657m1.164-8.894a4.5 4.5 0 117.481 4.5l-4.243 4.243a4.5 4.5 0 01-7.48-4.5z"></path></svg>
+                    <p class="font-semibold text-gray-800">Find Local Clinic</p>
+                    <p class="text-xs text-gray-500">Addresses of nearest hospitals & clinics.</p>
+                </div>
+                
+                <!-- Feature Card: Maternal & Child Health -->
+                <div onclick="switchView('mch')" class="feature-card bg-pink-50 border border-pink-200 p-4 rounded-xl text-center shadow-md">
+                    <svg class="w-8 h-8 text-pink-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.143M9 10a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <p class="font-semibold text-gray-800">Maternal & Child</p>
+                    <p class="text-xs text-gray-500">Pregnancy, nutrition, and guidance.</p>
+                </div>
+
+                <!-- Feature Card: Vaccination Reminders -->
+                <div onclick="switchView('vaccine_reminders')" class="feature-card bg-indigo-50 border border-indigo-200 p-4 rounded-xl text-center shadow-md">
+                    <svg class="w-8 h-8 text-indigo-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <p class="font-semibold text-gray-800">Vaccination Reminders</p>
+                    <p class="text-xs text-gray-500">Check schedule and get reminders.</p>
+                </div>
+
+                <!-- Feature Card: Emergency Mode -->
+                <div onclick="switchView('emergency')" class="feature-card bg-red-50 border border-red-200 p-4 rounded-xl text-center shadow-md">
+                    <svg class="w-8 h-8 text-red-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.368 17c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    <p class="font-semibold text-gray-800">Emergency First-Aid</p>
+                    <p class="text-xs text-gray-500">Snakebite, poisoning, injury steps.</p>
+                </div>
+            </div>
+            <p class="text-sm text-center text-gray-500 pt-4">Select a module to begin a conversation with your AI Companion.</p>
+        </main>
+        
+        <!-- --- CHAT VIEW (Hidden by default) --- -->
+        <main class="p-4 space-y-4 h-[28rem] overflow-y-auto" id="chat-view">
+            <!-- Messages will be injected here -->
+        </main>
+
+
+        <!-- Input Area (Only visible in chat mode) -->
+        <footer class="p-4 border-t border-gray-200 bg-white hidden" id="chat-footer">
+            <div class="flex space-x-2">
+                <!-- Image/File Upload Button -->
+                <input type="file" id="file-input" accept="image/*" class="hidden">
+                <button onclick="document.getElementById('file-input').click()" id="upload-button" class="p-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-150 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-9-2h.01M5 12h.01"></path></svg>
+                </button>
+                <!-- END NEW -->
+
+                <input type="text" id="symptom-input" placeholder="Speak or type your query here..." class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 transition duration-150" aria-label="Symptom input">
+                
+                <!-- NEW: Stop Audio Button -->
+                <button onclick="stopAudio()" id="stop-audio-button" class="p-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-150 flex items-center justify-center hidden disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Stop Audio">
+                   <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12H3M21 12l-4 4m4-4l-4-4"></path></svg>
+                </button>
+
+                <button onclick="sendMessage()" id="send-button" class="bg-emerald-600 text-white p-3 rounded-lg hover:bg-emerald-700 transition duration-150 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </button>
+            </div>
+            <!-- Display selected file name -->
+            <p id="selected-file-name" class="text-xs text-gray-500 mt-1 truncate"></p>
+            <div id="status-message" class="text-xs mt-2 text-center text-gray-600 hidden"></div>
+            <audio id="audio-player" class="hidden"></audio>
+        </footer>
+
+    </div>
+
+    <script>
+        // --- Global Config and Constants ---
+        const apiKey = ""; 
+        const TEXT_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=" + apiKey;
+        const TTS_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=" + apiKey;
+
+        // State variables
+        let chatHistory = [];
+        let currentMode = 'dashboard'; 
+        let isOffline = false; // NEW Offline state
+        let isSpeaking = false; // NEW Speaking state
+
+        // --- DOM Elements ---
+        const chatWindow = document.getElementById('chat-view'); 
+        const symptomInput = document.getElementById('symptom-input');
+        const sendButton = document.getElementById('send-button');
+        const stopAudioButton = document.getElementById('stop-audio-button'); // NEW
+        const statusMessage = document.getElementById('status-message');
+        const languageSelect = document.getElementById('language-select');
+        const audioPlayer = document.getElementById('audio-player');
+        const fileInput = document.getElementById('file-input'); 
+        const selectedFileName = document.getElementById('selected-file-name'); 
+        const offlineToggle = document.getElementById('offline-toggle');
+        const offlineStatus = document.getElementById('offline-status');
+        
+        const dashboardView = document.getElementById('dashboard-view');
+        const chatFooter = document.getElementById('chat-footer');
+        const homeButton = document.getElementById('home-button');
+        const appTitle = document.getElementById('app-title');
+        const appSubtitle = document.getElementById('app-subtitle');
+
+        // NEW: Local Cache for Offline Mode (Added Telugu - te-IN)
+        const localCache = {
+            'en-US': {
+                'fever': "Possible Cause: A common cold or mild infection.\nFirst Steps: Rest, drink clean water, and keep cool. Use a damp cloth to sponge the forehead.\nClinic Advice: See a doctor if the fever is above 102°F (38.9°C), lasts more than 2 days, or if you feel confused.\nPreventive Tips: Wash hands often with soap and water.",
+                'cough': "Possible Cause: Dust irritation or cold.\nFirst Steps: Drink warm liquids like herbal tea. Avoid smoke and dust. Keep your throat moist with water.\nClinic Advice: Consult a doctor if the cough produces blood, lasts over a week, or is severe at night.\nPreventive Tips: Cover your mouth when coughing.",
+                'snakebite': "IMPORTANT: Call for help immediately! Keep the person calm and still. Do not try to suck out the venom or cut the wound. Remove jewelry. Keep the bite area below the heart if possible. Get to a hospital quickly.",
+                'default': "I can only answer about fever, cough, or snakebite when offline. Please try one of those, or connect to the internet for a full response."
+            },
+            'hi-IN': {
+                'fever': "संभावित कारण: सामान्य सर्दी या हल्का संक्रमण।\nपहले कदम: आराम करें, साफ पानी पीएँ, और शरीर को ठंडा रखें। माथे पर गीला कपड़ा रखें।\nक्लिनिक सलाह: अगर बुखार 102°F (38.9°C) से अधिक हो, 2 दिन से ज़्यादा रहे, या आप भ्रमित महसूस करें तो डॉक्टर को दिखाएँ।\nरोकथाम के उपाय: हाथों को साबुन और साफ पानी से बार-बार धोएँ।",
+                'cough': "संभावित कारण: धूल या ठंड लगना।\nपहले कदम: गर्म चीजें जैसे हर्बल चाय पीएँ। धुएं और धूल से बचें। अपने गले को पानी से नम रखें।\nक्लिनिक सलाह: अगर खांसी में खून आए, एक सप्ताह से ज़्यादा चले, या रात में गंभीर हो तो डॉक्टर से सलाह लें।\nरोकथाम के उपाय: खाँसते समय मुँह ढकें।",
+                'snakebite': "अत्यंत महत्वपूर्ण: तुरंत मदद के लिए कॉल करें! व्यक्ति को शांत और स्थिर रखें। ज़हर चूसने या घाव को काटने की कोशिश न करें। गहने हटा दें। अगर संभव हो तो काटने वाली जगह को दिल से नीचे रखें। तुरंत अस्पताल जाएँ।",
+                'default': "ऑफ़लाइन होने पर मैं केवल बुखार, खांसी या सांप काटने के बारे में जवाब दे सकती हूँ। कृपया उनमें से एक आज़माएँ, या पूरी प्रतिक्रिया के लिए इंटरनेट से कनेक्ट करें।"
+            },
+            'te-IN': {
+                'fever': "జ్వరం: సాధారణ జలుబు లేదా చిన్న ఇన్‌ఫెక్షన్.\nమొదటి చర్యలు: విశ్రాంతి తీసుకోండి, శుభ్రమైన నీరు తాగండి. తడి గుడ్డతో నుదిటిని తుడవండి.\nక్లినిక్ సలహా: జ్వరం 102°F దాటితే లేదా 2 రోజులకు మించి ఉంటే డాక్టర్‌ను కలవండి.\nనివారణ చిట్కాలు: చేతులను తరచుగా సబ్బుతో కడగాలి.",
+                'cough': "దగ్గు: దుమ్ము లేదా చలి కారణంగా.\nమొదటి చర్యలు: గోరువెచ్చని ద్రవాలు తాగండి. పొగ, దుమ్ము నుండి దూరంగా ఉండండి.\nక్లినిక్ సలహా: దగ్గులో రక్తం వస్తే, వారం రోజులకు మించి ఉంటే, డాక్టర్‌ను సంప్రదించండి.\nనివారణ చిట్కాలు: దగ్గేటప్పుడు నోరు మూసుకోండి.",
+                'snakebite': "అత్యవసరం: వెంటనే సహాయం కోసం కాల్ చేయండి! వ్యక్తిని ప్రశాంతంగా, కదలకుండా ఉంచండి. విషాన్ని పీల్చడానికి లేదా గాయాన్ని కోయడానికి ప్రయత్నించవద్దు. ఆసుపత్రికి త్వరగా వెళ్లండి.",
+                'default': "ఆఫ్‌లైన్‌లో ఉన్నప్పుడు, నేను జ్వరం, దగ్గు లేదా పాము కాటు గురించి మాత్రమే సమాధానం చెప్పగలను. దయచేసి వాటిలో ఒకటి ప్రయత్నించండి, లేదా పూర్తి సమాధానం కోసం ఇంటర్నెట్‌కు కనెక్ట్ అవ్వండి."
+            }
+        };
+
+        // --- Utility Functions for Multimodal and TTS ---
+        
+        function readFileAsBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]); 
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        function base64ToArrayBuffer(base64) {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function createWavHeader(sampleRate, numChannels, bitsPerSample, dataLength) {
+            const buffer = new ArrayBuffer(44);
+            const view = new DataView(buffer);
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + dataLength, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * numChannels * (bitsPerSample / 8), true);
+            view.setUint16(32, numChannels * (bitsPerSample / 8), true);
+            view.setUint16(34, bitsPerSample, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, dataLength, true);
+            return view;
+            function writeString(view, offset, string) {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            }
+        }
+
+        function pcmToWav(pcm16, sampleRate) {
+            const numChannels = 1;
+            const bitsPerSample = 16;
+            const pcmLength = pcm16.byteLength;
+            
+            const header = createWavHeader(sampleRate, numChannels, bitsPerSample, pcmLength);
+
+            const combinedBuffer = new Uint8Array(header.buffer.byteLength + pcmLength);
+            combinedBuffer.set(new Uint8Array(header.buffer), 0);
+            combinedBuffer.set(new Uint8Array(pcm16.buffer), header.buffer.byteLength);
+
+            return new Blob([combinedBuffer], { type: 'audio/wav' });
+        }
+        
+        // --- API Call Functions ---
+
+        async function retryFetch(url, options, maxRetries = 5, delay = 1000) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.status !== 429) { 
+                        return response;
+                    }
+                    // FIX: Changed single quotes to backticks for template literal
+                    console.warn(`Rate limit exceeded (429). Retrying in ${delay / 1000}s...`);
+                } catch (error) {
+                    console.error("Fetch error, retrying...", error);
+                }
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay *= 2; 
+            }
+            throw new Error("API call failed after maximum retries.");
+        }
+
+        /**
+         * Determines the correct system prompt based on the current mode.
+         */
+        function getSystemPrompt(languageCode) {
+            let coreInstruction = '';
+            let subtitle = '';
+
+            switch (currentMode) {
+                case 'test_analysis':
+                    subtitle = "Test Result Analyzer Mode";
+                    coreInstruction = `You are the AI Health Companion. The user will provide partial medical test results, either typed or as an image (scan/photo). Your sole task is to analyze the result (if image is present, treat it as the report), provide a simple, 2-3 line explanation of what the result means in everyday terms (what is healthy, what is not), and **ALWAYS** strongly advise consulting a doctor with the full report for a proper diagnosis. DO NOT give diagnosis or treatment advice.`;
+                    break;
+                case 'mch':
+                    subtitle = "Maternal & Child Health Mode";
+                    coreInstruction = `You are the AI Health Companion specialized in Maternal and Child Health (MCH). Respond with highly empathetic, culturally sensitive, and simple advice focused on pregnancy, post-natal care, nutrition, and vaccination schedules. Structure your advice into short, clear, 2-3 line points. **ALWAYS** advise visiting the local ASHA worker or clinic for personalized MCH guidance.`;
+                    break;
+                case 'vaccine_reminders':
+                    subtitle = "Vaccination Reminders Mode";
+                    coreInstruction = `You are the AI Health Companion's Vaccination Assistant. The user will ask about a child's age or a specific vaccine. Provide the standard Indian vaccination schedule information in a clear, sequential list. If the user asks for a reminder based on an age, provide the next two scheduled vaccines. **ALWAYS** stress the importance of maintaining records and consulting the nearest health clinic.`;
+                    break;
+                case 'find_clinic':
+                    subtitle = "Find Local Clinic Mode";
+                    // NEW: Prompt optimized for location search
+                    coreInstruction = `You are the AI Health Companion's Clinic Locator. The user will provide a location (village, town, or city name). Use Google Search grounding to find the 3 nearest government hospitals, primary health centers (PHC), or trusted private clinics. Provide the name, address (in a short format), and a Google Maps link for directions. Structure the results clearly with numbered points. If multiple clinics are found, list them, and **ALWAYS** end with a simple instruction on how to get there.`;
+                    break;
+                case 'emergency':
+                    subtitle = "Emergency First-Aid Mode";
+                    coreInstruction = `You are the AI Health Companion's Emergency Assistant. The user needs immediate, life-saving, simple first-aid instructions for conditions like snakebites, poisoning, or severe injury (possibly including an image). Provide only the most critical, immediate, sequential steps (1, 2, 3...) in short, clear sentences. **Crucially, ALWAYS begin your response by instructing the user to call for immediate help or transport to the nearest hospital.** Limit advice strictly to first-aid until professional help arrives.`;
+                    break;
+                case 'chat':
+                default:
+                    subtitle = "Symptom Checker Mode";
+                    coreInstruction = `You are the AI Health Companion, a highly knowledgeable, empathetic, and reliable voice assistant providing simple, actionable, and verified healthcare guidance. You serve people in rural communities who may have low literacy. If an image of a rash or injury is provided, analyze it alongside the symptoms. Your core purpose is to simplify information. Your responses MUST be concise, clear, and limited to short, 2-3 line explanations per point. Speak like a helpful, understanding companion. Structure your response into these simple sections: 1. **Possible causes/First Steps:** Simple, immediate actions for relief. 2. **Clinic Advice:** Clear advice on whether and when to seek professional help. 3. **Preventive Tips:** One or two easy tips for the future. DO NOT provide complex diagnoses or technical medical terms. ALWAYS strongly advise seeking professional medical advice if symptoms are serious or persist.`;
+                    break;
+            }
+            appSubtitle.textContent = subtitle;
+            return `Your language for the response MUST be: ${languageCode}. ${coreInstruction}`;
+        }
+
+
+        async function generateText(query, languageCode, base64Data = null, mimeType = null) {
+            // NEW: Offline check
+            if (isOffline) {
+                const lang = localCache[languageCode] || localCache['en-US'];
+                const normalizedQuery = query.toLowerCase().split(' ').filter(w => ['fever', 'cough', 'snakebite'].includes(w)).join('');
+                const cachedResponse = lang[normalizedQuery] || lang['default'];
+                return { text: cachedResponse, sources: [{ title: 'Local Cache', uri: '#' }] };
+            }
+
+            const systemPrompt = getSystemPrompt(languageCode);
+            
+            const contentParts = [{ text: query }];
+            if (base64Data && mimeType) {
+                contentParts.unshift({ 
+                    inlineData: {
+                        data: base64Data,
+                        mimeType: mimeType
+                    }
+                });
+            }
+
+            const contents = [...chatHistory, { role: "user", parts: contentParts }];
+
+            const payload = {
+                contents: contents, 
+                tools: [{ "google_search": {} }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                }
+            };
+
+            const options = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            };
+
+            const response = await retryFetch(TEXT_API_URL, options);
+            if (!response.ok) throw new Error(`Text Generation failed with status: ${response.status}`);
+            
+            const result = await response.json();
+            const candidate = result.candidates?.[0];
+
+            if (candidate && candidate.content?.parts?.[0]?.text) {
+                const text = candidate.content.parts[0].text;
+                let sources = [];
+                const groundingMetadata = candidate.groundingMetadata;
+
+                if (groundingMetadata && groundingMetadata.groundingAttributions) {
+                    sources = groundingMetadata.groundingAttributions
+                        .map(attribution => ({
+                            uri: attribution.web?.uri,
+                            title: attribution.web?.title,
+                        }))
+                        .filter(source => source.uri && source.title);
+                }
+                return { text, sources };
+            }
+            throw new Error("Could not extract text response from the model.");
+        }
+
+        async function generateAndPlayAudio(text, voiceName) {
+            const payload = {
+                contents: [{
+                    parts: [{ text: text }]
+                }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: voiceName }
+                        }
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+
+            const options = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            };
+
+            const response = await retryFetch(TTS_API_URL, options);
+            if (!response.ok) throw new Error(`TTS Generation failed with status: ${response.status}`);
+
+            const result = await response.json();
+            const part = result?.candidates?.[0]?.content?.parts?.[0];
+            const audioData = part?.inlineData?.data;
+            const mimeType = part?.inlineData?.mimeType; 
+
+            if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
+                const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 24000;
+                
+                const pcmData = base64ToArrayBuffer(audioData);
+                const pcm16 = new Int16Array(pcmData);
+
+                const wavBlob = pcmToWav(pcm16, sampleRate);
+                const audioUrl = URL.createObjectURL(wavBlob);
+                
+                audioPlayer.src = audioUrl;
+                audioPlayer.play();
+                
+            } else {
+                throw new Error("Could not generate or process audio data.");
+            }
+        }
+
+        function stopAudio() {
+             audioPlayer.pause();
+             audioPlayer.currentTime = 0;
+             stopAudioButton.classList.add('hidden');
+             isSpeaking = false;
+             toggleLoading(false, isOffline ? "Audio stopped. How else can I help (Offline Mode)?" : "Audio stopped. How else can I help?");
+             setTimeout(() => updateStatus('', ''), 5000); 
+        }
+
+        function simulateTTS(text) {
+            // Check if API key is not configured, which causes the 401 error
+            if (apiKey === "") {
+                console.warn("TTS skipped: API Key is required for TTS functionality in this environment.");
+                updateStatus("Voice output skipped (API key missing).", 'text-yellow-600');
+                toggleLoading(false); // Re-enable UI immediately
+                setTimeout(() => updateStatus('', ''), 5000); 
+                return;
+            }
+
+            const selectedOption = languageSelect.options[languageSelect.selectedIndex];
+            const voiceName = selectedOption.getAttribute('data-voice');
+            
+            if (voiceName) {
+                // Toggle loading specifically for speaking
+                toggleLoading(true, "Speaking...");
+                isSpeaking = true;
+                stopAudioButton.classList.remove('hidden');
+
+                generateAndPlayAudio(text, voiceName)
+                    .catch(e => {
+                        console.error("TTS Error:", e);
+                        // Show specific error message for the user if the call failed
+                        updateStatus(`Voice unavailable. Error: ${e.message}`, 'text-red-500');
+                        isSpeaking = false;
+                        stopAudioButton.classList.add('hidden');
+                        toggleLoading(false); // Ensure input is re-enabled on error
+                    })
+                    .finally(() => {
+                        audioPlayer.onended = () => {
+                            isSpeaking = false;
+                            stopAudioButton.classList.add('hidden');
+                            toggleLoading(false, isOffline ? "Audio finished. How else can I help (Offline Mode)?" : "Audio finished. How else can I help?");
+                            setTimeout(() => updateStatus('', ''), 5000); 
+                        }
+                    });
+            } else {
+                updateStatus("Please select a language option that has a voice configured.", 'text-red-500');
+            }
+        }
+
+        function toggleOfflineMode() {
+            isOffline = offlineToggle.checked;
+            offlineStatus.classList.toggle('hidden', !isOffline);
+            updateStatus(isOffline ? 'Offline Mode Activated: Using local health cache.' : '', isOffline ? 'text-red-500' : 'text-green-500');
+            
+            // Disable file upload in offline mode
+            document.getElementById('upload-button').disabled = isOffline;
+            if (isOffline) {
+                fileInput.value = '';
+                selectedFileName.textContent = '';
+            }
+        }
+
+        // Handler for built-in emergency options
+        function handleEmergencyOption(query) {
+            symptomInput.value = query;
+            sendMessage();
+        }
+
+        // Function to display quick-access buttons for Emergency mode
+        function displayEmergencyOptions(langCode) {
+            const isHindi = langCode.startsWith('hi');
+
+            const options = [
+                { label: isHindi ? 'सांप का काटना' : 'Snakebite', query: isHindi ? 'सांप काटने का प्राथमिक उपचार' : 'First aid for snakebite' },
+                { label: isHindi ? 'गंभीर जलना' : 'Severe Burn', query: isHindi ? 'गंभीर जलने का प्राथमिक उपचार' : 'First aid for severe burn' },
+                { label: isHindi ? 'दम घुटना/चॉकिंग' : 'Choking/Drowning', query: isHindi ? 'दम घुटने का प्राथमिक उपचार' : 'First aid for choking or drowning' },
+                { label: isHindi ? 'खून बहना (कट)' : 'Severe Bleeding (Cut)', query: isHindi ? 'गंभीर कटने पर प्राथमिक उपचार' : 'First aid for severe bleeding from a cut' },
+                { label: isHindi ? 'हार्ट अटैक' : 'Heart Attack', query: isHindi ? 'हार्ट अटैक के तुरंत बाद क्या करें' : 'Immediate steps for suspected heart attack' },
+            ];
+
+            const welcomeText = isHindi 
+                ? "महत्वपूर्ण: यह आपातकालीन मोड है। तुरंत मदद के लिए कॉल करें। नीचे दिए गए विकल्पों में से चुनें या अपनी समस्या खोजें।"
+                : "IMPORTANT: This is Emergency Mode. Call for help immediately. Choose a common scenario below or type your emergency situation.";
+
+            displayCompanionResponse(welcomeText, [], false);
+            
+            const buttonsHtml = `
+                <div class="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl space-y-2">
+                    <p class="text-sm font-semibold text-red-700">Quick Action / त्वरित कार्रवाई:</p>
+                    ${options.map(option => `
+                        <button onclick="handleEmergencyOption('${option.query}')"
+                                class="w-full text-left p-3 text-sm bg-red-100 text-red-800 rounded-lg hover:bg-red-200 transition duration-150 shadow-sm">
+                            ${option.label}
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+            chatWindow.innerHTML += buttonsHtml;
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+            simulateTTS(welcomeText);
+        }
+
+        // --- UI Handling Functions ---
+
+        /**
+         * Switches the application view between dashboard and a feature chat.
+         */
+        function switchView(mode) {
+            currentMode = mode;
+            chatHistory = []; 
+            chatWindow.innerHTML = '';
+            
+            // Stop audio when switching modes
+            if (isSpeaking) {
+                stopAudio();
+            }
+
+            const isDashboard = mode === 'dashboard';
+
+            dashboardView.classList.toggle('hidden', !isDashboard);
+            chatWindow.classList.toggle('hidden', isDashboard);
+            chatFooter.classList.toggle('hidden', isDashboard); 
+            homeButton.classList.toggle('hidden', isDashboard);
+            appSubtitle.textContent = isDashboard ? 'Dashboard' : getModeName(mode);
+            
+            // Show/hide upload button based on mode and offline status
+            const uploadButton = document.getElementById('upload-button');
+            // Disable upload for specific modes
+            const disableUpload = isOffline || mode === 'emergency' || mode === 'vaccine_reminders' || mode === 'find_clinic';
+            uploadButton.classList.toggle('hidden', disableUpload);
+
+            // Reset file input state
+            fileInput.value = '';
+            selectedFileName.textContent = '';
+            
+            // Hide the stop button when on dashboard or initiating a new conversation
+            stopAudioButton.classList.add('hidden');
+            
+            if (!isDashboard) {
+                const languageCode = languageSelect.value;
+                if (mode === 'emergency') {
+                    displayEmergencyOptions(languageCode); 
+                    toggleLoading(false); // Enable input immediately after showing buttons
+                } else {
+                    const welcomeMessage = getWelcomeMessage(mode, languageCode);
+                    displayCompanionResponse(welcomeMessage, [], false);
+                    toggleLoading(false); // Enable input immediately before starting TTS
+                    simulateTTS(welcomeMessage);
+                }
+            }
+        }
+        
+        function getModeName(mode) {
+            switch (mode) {
+                case 'chat': return "Symptom Checker";
+                case 'test_analysis': return "Test Result Analyzer";
+                case 'mch': return "Maternal & Child Health";
+                case 'vaccine_reminders': return "Vaccination Reminders"; 
+                case 'find_clinic': return "Find Local Clinic"; 
+                case 'emergency': return "Emergency First-Aid";
+                default: return "AI Health Companion";
+            }
+        }
+
+        function getWelcomeMessage(mode, langCode) {
+            const messages = {
+                'en-US': {
+                    'chat': "Hello! Please tell me your symptoms or upload a picture of a rash. I will provide simple, verified advice.",
+                    'test_analysis': "Welcome to the Analyzer. Please tell me your test result values (e.g., 'My blood pressure is 140 over 90') or upload a photo of the report.",
+                    'mch': "Hello, I am here to assist with maternal and child health. Ask about nutrition, pregnancy, or vaccination schedules.",
+                    'vaccine_reminders': "Welcome. Please tell me the child's age or last vaccine received to check the schedule and set reminders.", 
+                    'find_clinic': "Welcome to the Clinic Locator. Please type your village or town name (e.g., 'Near Mehsana Hospital') to find local health centers.",
+                    'emergency': "IMPORTANT: This is Emergency Mode. Immediately call for help. Use the buttons or search below.",
+                },
+                'hi-IN': {
+                    'chat': "नमस्ते! कृपया मुझे अपने लक्षण बताएं या चकत्ते की तस्वीर अपलोड करें। मैं आपको आसान, सत्यापित सलाह दूंगी।",
+                    'test_analysis': "विश्लेषक में आपका स्वागत है। कृपया मुझे अपने परीक्षण परिणाम बताएं (उदाहरण: 'मेरा रक्तचाप 140 बटा 90 है') या रिपोर्ट की तस्वीर अपलोड करें।",
+                    'mch': "नमस्ते, मैं मातृ एवं शिशु स्वास्थ्य में सहायता के लिए यहाँ हूँ। पोषण, गर्भावस्था या टीकाकरण के बारे में पूछें।",
+                    'vaccine_reminders': "आपका स्वागत है। कृपया बच्चे की उम्र या आखिरी टीका बताएं ताकि मैं अनुसूची की जांच कर सकूं।", 
+                    'find_clinic': "क्लिनिक लोकेटर में आपका स्वागत है। कृपया अपने गाँव या कस्बे का नाम टाइप करें (जैसे, 'मेहसाणा अस्पताल के पास') ताकि मैं स्थानीय स्वास्थ्य केंद्र ढूंढ सकूं।",
+                    'emergency': "महत्वपूर्ण: यह आपातकालीन मोड है। तुरंत मदद के लिए कॉल करें। नीचे दिए गए विकल्पों में से चुनें या अपनी समस्या खोजें।",
+                },
+                'te-IN': {
+                    'chat': "నమస్కారం! దయచేసి మీ లక్షణాలు లేదా దద్దుర్ల చిత్రాన్ని అప్‌లోడ్ చేయండి. నేను సరళమైన, ధృవీకరించబడిన సలహా ఇస్తాను.",
+                    'test_analysis': "విశ్లేషకుడికి స్వాగతం. దయచేసి మీ పరీక్ష ఫలితాల విలువలను (ఉదా: 'నా రక్తపోటు 140/90 ఉంది') లేదా నివేదన యొక్క ఫోటోను అప్‌లోడ్ చేయండి.",
+                    'mch': "నమస్కారం, నేను తల్లి మరియు పిల్లల ఆరోగ్యానికి సహాయం చేయడానికి ఇక్కడ ఉన్నాను. పోషణ, గర్భధారణ లేదా టీకా షెడ్యూల్ గురించి అడగండి.",
+                    'vaccine_reminders': "స్వాగతం. దయచేసి బిడ్డ వయస్సు లేదా చివరి టీకా గురించి చెప్పండి, తద్వారా నేను షెడ్యూల్‌ను తనిఖీ చేయగలను.",
+                    'find_clinic': "క్లినిక్ లోకేటర్‌కు స్వాగతం. దయచేసి స్థానిక ఆరోగ్య కేంద్రాలను కనుగొనడానికి మీ గ్రామం లేదా పట్టణం పేరును టైప్ చేయండి.",
+                    'emergency': "ముఖ్యమైనది: ఇది అత్యవసర మోడ్. వెంటనే సహాయం కోసం కాల్ చేయండి. దిగువ ఎంపికలను ఉపయోగించండి లేదా మీ సమస్యను శోధించండి.",
+                }
+            };
+            
+            const lang = messages[langCode] ? langCode : (langCode.startsWith('hi') ? 'hi-IN' : (langCode.startsWith('te') ? 'te-IN' : 'en-US'));
+            
+            return messages[lang][mode] || messages['en-US'][mode];
+        }
+
+
+        function toggleLoading(isLoading, message = '') {
+            symptomInput.disabled = isLoading;
+            sendButton.disabled = isLoading;
+            fileInput.disabled = isLoading || isOffline; // Disabled if offline
+            document.getElementById('upload-button').disabled = isLoading || isOffline; // Disabled if offline
+            
+            // We only show the stop button if we are NOT loading for a new query, but ARE speaking.
+            // The simulationTTS function handles showing/hiding based on speaking state.
+            
+            statusMessage.classList.toggle('hidden', !isLoading && !message);
+            updateStatus(message, isLoading ? 'text-gray-600 animate-pulse' : 'text-green-600');
+
+            sendButton.innerHTML = isLoading ? 
+                '<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>' :
+                '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>';
+        }
+
+        function updateStatus(message, className = 'text-gray-600') {
+            statusMessage.textContent = message;
+            // FIX: Changed quotes to backticks for template literal
+            statusMessage.className = `text-xs mt-2 text-center ${className}`;
+            statusMessage.classList.remove('hidden');
+            if (!message) statusMessage.classList.add('hidden');
+        }
+
+        function displayUserMessage(text, isImage = false) {
+            const messageHtml = `
+                <div class="flex justify-end">
+                    <div class="bg-emerald-100 text-gray-800 p-3 rounded-lg max-w-[85%]">
+                        <p class="font-semibold text-right">You:</p>
+                        <p class="text-right">${isImage ? 'Image uploaded for analysis.' : text}</p>
+                    </div>
+                </div>
+            `;
+            chatWindow.innerHTML += messageHtml;
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        function displayCompanionResponse(text, sources, showSpeakerIcon = true) {
+            const formattedText = text.replace(/\n/g, '<br>');
+
+            let sourcesHtml = '';
+            if (sources && sources.length > 0) {
+                const limitedSources = sources.slice(0, 3);
+                sourcesHtml = `
+                    <div class="mt-2 pt-2 border-t border-emerald-300">
+                        <p class="text-xs font-medium text-emerald-600 mb-1">Sources (Verified Health Information):</p>
+                        <ul class="list-disc list-inside space-y-0.5 text-xs text-gray-600">
+                            ${limitedSources.map(source => 
+                                `<li><a href="${source.uri}" target="_blank" class="text-blue-600 hover:underline">${source.title || 'Source Link'}</a></li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            const speakerIconHtml = showSpeakerIcon ? 
+                `<svg id="speaker-icon" class="w-5 h-5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 5.343a1 1 0 010 1.414 7 7 0 010 9.9c.774.773 1.905 1.16 3.036 1.16S19.5 17.586 19.5 16.5a1.5 1.5 0 00-3 0c0 .385.15.75.44 1.04l.707.707a8 8 0 000-11.314l-.707-.707c-.29-.29-.655-.44-1.04-.44-.385 0-.75.15-1.04.44z" clip-rule="evenodd"></path></svg>` : 
+                '';
+
+            const messageHtml = `
+                <div class="flex justify-start">
+                    <div class="chat-bubble p-3 rounded-lg max-w-[95%]">
+                        <p class="font-semibold text-emerald-700 mb-1 flex justify-between items-center">
+                            <span>Companion (${getModeName(currentMode)}):</span>
+                            ${speakerIconHtml}
+                        </p>
+                        <p class="text-gray-800">${formattedText}</p>
+                        ${sourcesHtml}
+                    </div>
+                </div>
+            `;
+            chatWindow.innerHTML += messageHtml;
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        // --- Main Logic ---
+
+        async function sendMessage() {
+            // If audio is currently playing from a previous response, stop it before sending a new message
+            if (isSpeaking) {
+                stopAudio();
+            }
+            
+            const query = symptomInput.value.trim();
+            const file = fileInput.files[0];
+            
+            if (query === "" && !file) return;
+            if (isOffline && file) {
+                updateStatus("Cannot upload files in Offline Mode.", 'text-red-500');
+                return;
+            }
+
+            const selectedOption = languageSelect.options[languageSelect.selectedIndex];
+            const languageCode = selectedOption.value;
+            const voiceName = selectedOption.getAttribute('data-voice');
+            
+            let base64Data = null;
+            let mimeType = null;
+            let textQuery = query;
+
+            displayUserMessage(textQuery || "...", !!file); 
+            symptomInput.value = '';
+            
+            toggleLoading(true, isOffline ? "Checking local cache..." : "Thinking and preparing advice...");
+
+            try {
+                if (file) {
+                    updateStatus("Reading image file...", 'text-gray-600 animate-pulse');
+                    if (!file.type.startsWith('image/')) {
+                         throw new Error("Only image files are supported for upload (skin rash, report photo).");
+                    }
+                    base64Data = await readFileAsBase64(file);
+                    mimeType = file.type;
+                    
+                    if (!textQuery) {
+                         if (currentMode === 'test_analysis') {
+                            textQuery = "Analyze the attached medical report image and summarize the key findings in simple language.";
+                        } else {
+                            textQuery = "Analyze the attached image and describe any visible symptoms or issues.";
+                        }
+                    }
+                }
+
+                fileInput.value = '';
+                selectedFileName.textContent = '';
+
+
+                const textResult = await generateText(textQuery, languageCode, base64Data, mimeType);
+                
+                // Update Chat History (only if not offline, to keep cache simple)
+                if (!isOffline) {
+                    chatHistory.push({ role: "user", parts: [{ text: textQuery }] });
+                    chatHistory.push({ role: "model", parts: [{ text: textResult.text }] });
+                    
+                    if (chatHistory.length > 10) {
+                        chatHistory = chatHistory.slice(chatHistory.length - 10);
+                    }
+                }
+                
+                displayCompanionResponse(textResult.text, textResult.sources);
+                
+                updateStatus("Advice ready. Generating voice output...", 'text-emerald-600');
+                
+                // The new simulateTTS function handles showing/hiding of the stop button and loading state until audio ends
+                await simulateTTS(textResult.text);
+                
+            } catch (e) {
+                console.error("AI Health Companion Error:", e);
+                updateStatus(`An error occurred. Please try again later. Error: ${e.message}`, 'text-red-500');
+                toggleLoading(false);
+            }
+        }
+        
+        // Event Listeners
+        symptomInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !sendButton.disabled) {
+                sendMessage();
+            }
+        });
+
+        // Event listener to display selected file name
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                selectedFileName.textContent = `File Selected: ${fileInput.files[0].name}`;
+            } else {
+                selectedFileName.textContent = '';
+            }
+        });
+
+        // Initialize the view to the Dashboard
+        window.onload = () => {
+             switchView('dashboard');
+             audioPlayer.controls = false; 
+             audioPlayer.loop = false; 
+             toggleOfflineMode(); // Initialize offline state on load
+        };
+
+    </script>
+</body>
+</html>
